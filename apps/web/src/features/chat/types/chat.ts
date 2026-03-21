@@ -1,3 +1,9 @@
+export const CHAT_LIMITS = {
+  authorMaxLength: 50,
+  messageMaxLength: 500,
+  defaultMessagesLimit: 50
+} as const
+
 export interface ChatMessage {
   id: string
   author: string
@@ -14,12 +20,4 @@ export interface MessagesQuery {
   before?: string
   after?: string
   limit?: number
-}
-
-export interface ChatPreviewMessage {
-  id: string
-  author: string
-  message: string
-  timestampLabel: string
-  variant: 'incoming' | 'outgoing' | 'system'
 }

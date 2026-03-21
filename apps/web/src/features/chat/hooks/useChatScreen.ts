@@ -1,51 +1,29 @@
 import type { ArchitectureNote } from '../../../types/app'
-import type { ChatPreviewMessage } from '../types/chat'
+import { useChatState } from './useChatState'
 
 const notes: ArchitectureNote[] = [
   {
-    title: 'UI components stay narrow',
+    title: 'Typed API client',
     description:
-      'Components are limited to rendering and local interaction, which keeps the next phase easier to test and extend.'
+      'The service layer owns request construction, response parsing, and transport-level error handling.'
   },
   {
-    title: 'Hooks own orchestration',
+    title: 'Message normalization',
     description:
-      'Feature hooks become the seam between rendering and business rules, instead of letting request logic spread through the tree.'
+      'Backend payloads are mapped into a frontend message model so UI code never deals with API-specific field names.'
   },
   {
-    title: 'Services own IO',
+    title: 'Hook-driven orchestration',
     description:
-      'The API layer is already carved out so message fetching and submission can land without reshaping the UI.'
-  }
-]
-
-const previewMessages: ChatPreviewMessage[] = [
-  {
-    id: 'message-1',
-    author: 'System',
-    message: 'Repo structure and documentation are in place.',
-    timestampLabel: 'Checkpoint',
-    variant: 'system'
-  },
-  {
-    id: 'message-2',
-    author: 'Frontend',
-    message: 'The message list component is ready for real data once the API layer is connected.',
-    timestampLabel: 'Preview',
-    variant: 'incoming'
-  },
-  {
-    id: 'message-3',
-    author: 'Composer',
-    message: 'The input area is intentionally disabled until submission flow is implemented.',
-    timestampLabel: 'Next step',
-    variant: 'outgoing'
+      'Fetching, submission state, and retry behavior live in a dedicated hook, leaving the components as render-only surfaces.'
   }
 ]
 
 export function useChatScreen() {
+  const chatState = useChatState()
+
   return {
     notes,
-    previewMessages
+    ...chatState
   }
 }

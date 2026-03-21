@@ -1,9 +1,11 @@
+import { requestJson } from '../../../api/requestJson'
 import { env } from '../../../config/env'
-import type {
-  ChatMessage,
-  CreateMessageInput,
-  MessagesQuery
-} from '../types/chat'
+import { mapChatMessage, mapChatMessages, normalizeCreateMessageInput } from './chatMappers'
+import type { ChatMessage, CreateMessageInput, MessagesQuery } from '../types/chat'
+
+interface RequestOptions {
+  signal?: AbortSignal
+}
 
 function createHeaders() {
   return {
@@ -12,15 +14,51 @@ function createHeaders() {
   }
 }
 
+function buildMessagesUrl(params?: MessagesQuery) {
+  const url = new URL('messages', `${env.apiBaseUrl}/`)
+
+  if (!params) {
+    return url.toString()
+  }
+
+  if (typeof params.limit === 'number') {
+    url.searchParams.set('limit', params.limit.toString())
+  }
+
+  if (params.after) {
+    url.searchParams.set('after', params.after)
+  }
+
+  if (params.before) {
+    url.searchParams.set('before', params.before)
+  }
+
+  return url.toString()
+}
+
 export const chatApi = {
-  async listMessages(params?: MessagesQuery): Promise<ChatMessage[]> {
-    void params
-    console.info('Chat API placeholder configured for', env.apiBaseUrl)
-    console.info('Request headers prepared with token length', createHeaders().Authorization.length)
-    return []
+  async listMessages(
+    params?: MessagesQuery,
+    options?: RequestOptions
+  ): Promise<ChatMessage[]> {
+    const payload = await requestJson(buildMessagesUrl(params), {
+      headers: createHeaders(),
+      signal: options?.signal
+    })
+
+    return mapChatMessages(payload)
   },
-  async createMessage(input: CreateMessageInput): Promise<ChatMessage> {
-    void input
-    throw new Error('Chat submission is intentionally deferred until the next checkpoint.')
+  async createMessage(
+    input: CreateMessageInput,
+    options?: RequestOptions
+  ): Promise<ChatMessage> {
+    const payload = await requestJson(buildMessagesUrl(), {
+      method: 'POST',
+      headers: createHeaders(),
+      body: JSON.stringify(normalizeCreateMessageInput(input)),
+      signal: options?.signal
+    })
+
+    return mapChatMessage(payload)
   }
 }

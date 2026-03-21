@@ -173,6 +173,21 @@ button {
   gap: 12px;
 }
 
+.message-list__state {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--color-border);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--color-muted);
+}
+
+.message-list__state--error,
+.status-copy--error {
+  color: #b42318;
+}
+
 .message-bubble {
   padding: 14px 16px;
   border-radius: var(--radius-md);
@@ -180,9 +195,14 @@ button {
   background: rgba(255, 255, 255, 0.75);
 }
 
+.message-bubble--incoming {
+  justify-self: start;
+}
+
 .message-bubble--outgoing {
   background: rgba(15, 118, 110, 0.1);
   border-color: rgba(15, 118, 110, 0.2);
+  justify-self: end;
 }
 
 .message-bubble--system {
@@ -206,7 +226,7 @@ button {
 .composer-grid {
   display: grid;
   gap: 14px;
-  margin: 18px 0;
+  margin-top: 18px;
 }
 
 .field {
@@ -225,11 +245,25 @@ button {
   color: var(--color-ink);
 }
 
+.field input:focus,
+.field textarea:focus {
+  outline: 2px solid rgba(15, 118, 110, 0.24);
+  outline-offset: 2px;
+  border-color: rgba(15, 118, 110, 0.35);
+}
+
 .field input:disabled,
 .field textarea:disabled,
 .button:disabled {
   opacity: 0.72;
   cursor: not-allowed;
+}
+
+.field__hint,
+.status-copy {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.92rem;
 }
 
 .button {
@@ -239,6 +273,15 @@ button {
   padding: 12px 18px;
   background: var(--color-ink);
   color: white;
+  font-weight: 700;
+}
+
+.inline-action {
+  width: fit-content;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--color-accent);
   font-weight: 700;
 }
 
