@@ -1,0 +1,75 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build output
+dist/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Environment variables
+.env*
+!.env.example
+
+# IDE settings
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.project
+.classpath
+.settings/
+*.code-workspace
+.history/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Operating System
+.DS_Store
+Thumbs.db
+.directory
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Coverage directory
+coverage/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+
+# Debug files
+.debug
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock

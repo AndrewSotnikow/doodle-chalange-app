@@ -1,0 +1,26 @@
+services:
+  api:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/chat-api
+      - NODE_ENV=production
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  mongodb:
+    image: mongo:8
+    volumes:
+      - mongodb_data:/data/db
+    command: ['mongod', '--quiet', '--logpath', '/dev/null']
+    healthcheck:
+      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  mongodb_data:

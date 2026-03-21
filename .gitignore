@@ -1,0 +1,11 @@
+.DS_Store
+node_modules
+*.tsbuildinfo
+apps/web/node_modules
+apps/web/dist
+apps/web/vite.config.js
+apps/web/vite.config.d.ts
+apps/api/node_modules
+apps/api/dist
+apps/api/.env
+apps/web/.env.local
