@@ -1,24 +1,42 @@
+import { useEffect, useRef } from 'react'
 import type { ChatMessage } from '../types/chat'
 import { MessageBubble } from './MessageBubble'
 
 interface MessageListProps {
+  currentAuthor: string
   messages: ChatMessage[]
   isLoading: boolean
   error: string | null
   onRetry: () => Promise<void>
 }
 
-export function MessageList({ error, isLoading, messages, onRetry }: MessageListProps) {
+export function MessageList({
+  currentAuthor,
+  error,
+  isLoading,
+  messages,
+  onRetry
+}: MessageListProps) {
+  const feedRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const feedElement = feedRef.current
+    if (!feedElement || messages.length === 0) {
+      return
+    }
+
+    feedElement.scrollTop = feedElement.scrollHeight
+  }, [messages])
+
   return (
     <section className="message-list" aria-labelledby="message-list-title">
       <div className="message-list__header">
         <div>
-          <p className="section-label">Render boundary</p>
-          <h3 id="message-list-title">Message list</h3>
+          <p className="section-label">Conversation</p>
+          <h3 id="message-list-title">Shared feed</h3>
         </div>
         <p className="message-list__caption">
-          Messages are loaded and submitted through the feature hook. This component only
-          renders the current state.
+          New messages appear in chronological order, with the latest entry kept in view.
         </p>
       </div>
 
@@ -44,9 +62,13 @@ export function MessageList({ error, isLoading, messages, onRetry }: MessageList
       ) : null}
 
       {!isLoading && !error && messages.length > 0 ? (
-        <div className="message-list__items">
+        <div className="message-list__items" ref={feedRef}>
           {messages.map((message) => (
-            <MessageBubble key={message.id} message={message} />
+            <MessageBubble
+              isOwnMessage={Boolean(currentAuthor) && currentAuthor === message.author}
+              key={message.id}
+              message={message}
+            />
           ))}
         </div>
       ) : null}

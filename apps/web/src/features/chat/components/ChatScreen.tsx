@@ -1,16 +1,18 @@
+import { ChatStatus } from './ChatStatus'
 import { useChatScreen } from '../hooks/useChatScreen'
 import { MessageComposer } from './MessageComposer'
 import { MessageList } from './MessageList'
 
 export function ChatScreen() {
   const {
+    activeAuthor,
     author,
     loadError,
     isLoading,
     isSubmitting,
     message,
     messages,
-    notes,
+    messageCount,
     retryMessages,
     submitError,
     submitMessage,
@@ -19,36 +21,37 @@ export function ChatScreen() {
   } = useChatScreen()
 
   return (
-    <section className="surface-card" aria-labelledby="chat-screen-title">
-      <div className="surface-card__header">
+    <section className="surface-card chat-screen" aria-labelledby="chat-screen-title">
+      <div className="chat-screen__hero">
         <div>
-          <p className="section-label">State layer connected</p>
-          <h2 id="chat-screen-title">Typed API and state orchestration</h2>
+          <p className="section-label">Doodle challenge chat</p>
+          <h2 id="chat-screen-title">Shared conversation</h2>
         </div>
         <p className="surface-card__lead">
-          Network concerns are isolated behind a typed API client and a feature hook.
-          These components render state only and do not know how messages are fetched or
-          submitted.
+          The message feed and composer are now a working end-to-end interface. Data
+          loading and submission stay in the feature hook, while each component owns only
+          its slice of rendering and local interaction.
         </p>
+        <ChatStatus
+          activeAuthor={activeAuthor}
+          hasError={Boolean(loadError)}
+          isLoading={isLoading}
+          isSubmitting={isSubmitting}
+          messageCount={messageCount}
+        />
       </div>
 
-      <div className="grid-stack">
-        <div className="note-grid">
-          {notes.map((note) => (
-            <article className="note-card" key={note.title}>
-              <p className="note-card__title">{note.title}</p>
-              <p className="note-card__body">{note.description}</p>
-            </article>
-          ))}
-        </div>
-
-        <div className="chat-preview">
+      <div className="chat-layout">
+        <div className="chat-layout__main">
           <MessageList
+            currentAuthor={activeAuthor}
             error={loadError}
             isLoading={isLoading}
             messages={messages}
             onRetry={retryMessages}
           />
+        </div>
+        <aside className="chat-layout__side">
           <MessageComposer
             author={author}
             isSubmitting={isSubmitting}
@@ -58,7 +61,7 @@ export function ChatScreen() {
             onSubmit={submitMessage}
             submitError={submitError}
           />
-        </div>
+        </aside>
       </div>
     </section>
   )

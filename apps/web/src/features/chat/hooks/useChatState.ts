@@ -93,9 +93,13 @@ export function useChatState() {
     setSubmitError(null)
 
     try {
+      const nextAuthor = draft.author.trim()
       const createdMessage = await chatApi.createMessage(draft)
       setMessages((currentMessages) => upsertChatMessage(currentMessages, createdMessage))
-      setDraft(INITIAL_DRAFT)
+      setDraft({
+        author: nextAuthor,
+        message: ''
+      })
     } catch (error) {
       setSubmitError(toErrorMessage(error))
     } finally {

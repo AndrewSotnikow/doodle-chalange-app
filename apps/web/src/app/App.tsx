@@ -4,10 +4,10 @@ import { ChatScreen } from '../features/chat/components/ChatScreen'
 import type { ShellCopy } from '../types/app'
 
 const shellCopy: ShellCopy = {
-  eyebrow: 'Checkpoint 02',
-  title: 'Typed API and state layer',
+  eyebrow: 'Checkpoint 03',
+  title: 'Focused chat interface',
   description:
-    'This checkpoint adds a typed service layer and dedicated state orchestration while keeping the UI free from direct network concerns.'
+    'This checkpoint turns the data layer into a usable chat experience with focused UI components and clear state-driven rendering.'
 }
 
 export function App() {
