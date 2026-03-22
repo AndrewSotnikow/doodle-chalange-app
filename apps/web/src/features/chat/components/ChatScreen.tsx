@@ -8,10 +8,14 @@ export function ChatScreen() {
     author,
     loadError,
     isLoading,
+    isLoadingOlder,
     isSubmitting,
+    hasOlderMessages,
+    loadOlderError,
     message,
     messages,
     messageCount,
+    loadOlderMessages,
     retryMessages,
     statusMessage,
     submitError,
@@ -49,8 +53,12 @@ export function ChatScreen() {
           <MessageList
             currentAuthor={activeAuthor}
             error={loadError}
+            hasOlderMessages={hasOlderMessages}
             isLoading={isLoading}
+            isLoadingOlder={isLoadingOlder}
+            loadOlderError={loadOlderError}
             messages={messages}
+            onLoadOlder={loadOlderMessages}
             onRetry={retryMessages}
           />
         </div>

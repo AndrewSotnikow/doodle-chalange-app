@@ -1,7 +1,7 @@
 export const CHAT_LIMITS = {
   authorMaxLength: 50,
   messageMaxLength: 500,
-  defaultMessagesLimit: 50
+  defaultMessagesLimit: 10
 } as const
 
 export interface ChatMessage {

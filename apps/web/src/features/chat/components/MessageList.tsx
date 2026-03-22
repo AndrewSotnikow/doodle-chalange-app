@@ -1,36 +1,122 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import type { ChatMessage } from '../types/chat'
 import { ChatNotice } from './ChatNotice'
 import { MessageBubble } from './MessageBubble'
 
 interface MessageListProps {
   currentAuthor: string
-  messages: ChatMessage[]
-  isLoading: boolean
   error: string | null
+  hasOlderMessages: boolean
+  isLoading: boolean
+  isLoadingOlder: boolean
+  loadOlderError: string | null
+  messages: ChatMessage[]
+  onLoadOlder: () => Promise<void>
   onRetry: () => Promise<void>
 }
 
 export function MessageList({
   currentAuthor,
   error,
+  hasOlderMessages,
   isLoading,
+  isLoadingOlder,
+  loadOlderError,
   messages,
+  onLoadOlder,
   onRetry
 }: MessageListProps) {
   const feedRef = useRef<HTMLDivElement | null>(null)
+  const sentinelRef = useRef<HTMLDivElement | null>(null)
+  const previousMessagesRef = useRef<ChatMessage[]>([])
+  const loadOlderSnapshotRef = useRef<{
+    previousFirstMessageId?: string
+    scrollHeight: number
+    scrollTop: number
+  } | null>(null)
 
-  useEffect(() => {
+  const handleLoadOlder = useCallback(async () => {
     const feedElement = feedRef.current
-    if (!feedElement || messages.length === 0) {
+
+    if (feedElement) {
+      loadOlderSnapshotRef.current = {
+        previousFirstMessageId: messages[0]?.id,
+        scrollHeight: feedElement.scrollHeight,
+        scrollTop: feedElement.scrollTop
+      }
+    }
+
+    await onLoadOlder()
+  }, [messages, onLoadOlder])
+
+  useLayoutEffect(() => {
+    const feedElement = feedRef.current
+    if (!feedElement) {
+      previousMessagesRef.current = messages
       return
     }
 
-    feedElement.scrollTop = feedElement.scrollHeight
-  }, [messages])
+    const previousMessages = previousMessagesRef.current
+    const loadOlderSnapshot = loadOlderSnapshotRef.current
+    const didPrependOlderMessages =
+      previousMessages.length > 0 &&
+      messages.length > previousMessages.length &&
+      messages[0]?.id !== previousMessages[0]?.id &&
+      messages[messages.length - 1]?.id === previousMessages[previousMessages.length - 1]?.id
+
+    if (loadOlderSnapshot && !isLoadingOlder) {
+      if (didPrependOlderMessages) {
+        const nextScrollTop =
+          loadOlderSnapshot.scrollTop +
+          (feedElement.scrollHeight - loadOlderSnapshot.scrollHeight)
+        feedElement.scrollTop = nextScrollTop
+      }
+
+      loadOlderSnapshotRef.current = null
+    } else if (messages.length > 0) {
+      const isInitialLoad = previousMessages.length === 0
+      const appendedNewMessage =
+        previousMessages.length > 0 &&
+        messages[messages.length - 1]?.id !== previousMessages[previousMessages.length - 1]?.id
+
+      if (isInitialLoad || appendedNewMessage) {
+        feedElement.scrollTop = feedElement.scrollHeight
+      }
+    }
+
+    previousMessagesRef.current = messages
+  }, [isLoadingOlder, messages])
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current
+    const scrollContainer = feedRef.current
+
+    if (!sentinel || !scrollContainer || !hasOlderMessages || isLoadingOlder || loadOlderError) {
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          void handleLoadOlder()
+        }
+      },
+      { root: scrollContainer, rootMargin: '200px 0px 0px 0px', threshold: 0 }
+    )
+
+    observer.observe(sentinel)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [hasOlderMessages, isLoadingOlder, loadOlderError, handleLoadOlder])
 
   return (
-    <section aria-busy={isLoading} className="message-list" aria-labelledby="message-list-title">
+    <section
+      aria-busy={isLoading || isLoadingOlder}
+      className="message-list"
+      aria-labelledby="message-list-title"
+    >
       <h2 className="sr-only" id="message-list-title">
         Shared feed
       </h2>
@@ -69,6 +155,30 @@ export function MessageList({
           ref={feedRef}
           role="log"
         >
+          {hasOlderMessages && !loadOlderError && (
+            <div aria-hidden="true" className="message-list__sentinel" ref={sentinelRef} />
+          )}
+          {(hasOlderMessages || loadOlderError) && (
+            <div className="message-list__pagination">
+              {loadOlderError ? (
+                <p className="message-list__pagination-error" role="status">
+                  {loadOlderError}
+                </p>
+              ) : null}
+              <button
+                className="message-list__pagination-button"
+                disabled={isLoadingOlder}
+                onClick={() => void handleLoadOlder()}
+                type="button"
+              >
+                {isLoadingOlder
+                  ? 'Loading earlier messages...'
+                  : loadOlderError
+                    ? 'Retry loading earlier messages'
+                    : 'Load earlier messages'}
+              </button>
+            </div>
+          )}
           {messages.map((message) => (
             <MessageBubble
               isOwnMessage={Boolean(currentAuthor) && currentAuthor === message.author}

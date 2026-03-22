@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  mergeChatMessages,
   mapChatMessage,
   mapChatMessages,
   normalizeCreateMessageInput,
@@ -76,6 +77,45 @@ describe('chatMappers', () => {
         message: 'middle',
         createdAt: '2026-03-22T10:00:00.000Z'
       }
+    )
+
+    expect(result.map((message) => message.id)).toEqual([
+      'message-1',
+      'message-2',
+      'message-3'
+    ])
+  })
+
+  it('merges paginated messages without duplicating entries', () => {
+    const result = mergeChatMessages(
+      [
+        {
+          id: 'message-2',
+          author: 'Jane',
+          message: 'middle',
+          createdAt: '2026-03-22T10:00:00.000Z'
+        },
+        {
+          id: 'message-3',
+          author: 'Jane',
+          message: 'later',
+          createdAt: '2026-03-22T11:00:00.000Z'
+        }
+      ],
+      [
+        {
+          id: 'message-1',
+          author: 'John',
+          message: 'first',
+          createdAt: '2026-03-22T09:00:00.000Z'
+        },
+        {
+          id: 'message-2',
+          author: 'Jane',
+          message: 'middle',
+          createdAt: '2026-03-22T10:00:00.000Z'
+        }
+      ]
     )
 
     expect(result.map((message) => message.id)).toEqual([

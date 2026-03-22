@@ -44,6 +44,16 @@ export function mapChatMessages(payload: unknown): ChatMessage[] {
   return payload.map(mapChatMessage).sort(compareByCreatedAt)
 }
 
+export function mergeChatMessages(messages: ChatMessage[], nextMessages: ChatMessage[]) {
+  const mergedMessages = new Map(messages.map((message) => [message.id, message]))
+
+  nextMessages.forEach((message) => {
+    mergedMessages.set(message.id, message)
+  })
+
+  return [...mergedMessages.values()].sort(compareByCreatedAt)
+}
+
 export function upsertChatMessage(messages: ChatMessage[], nextMessage: ChatMessage) {
   return [...messages.filter((message) => message.id !== nextMessage.id), nextMessage].sort(
     compareByCreatedAt

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { toErrorMessage } from '../../../api/requestJson'
 import { chatApi } from '../api/chatApi'
-import { upsertChatMessage } from '../api/chatMappers'
+import { mergeChatMessages, upsertChatMessage } from '../api/chatMappers'
 import { CHAT_LIMITS, type ChatMessage, type CreateMessageInput } from '../types/chat'
 
 const INITIAL_DRAFT: CreateMessageInput = {
@@ -28,25 +28,34 @@ function validateDraft(draft: CreateMessageInput) {
   return null
 }
 
+function createLatestMessagesQuery() {
+  return {
+    before: new Date().toISOString(),
+    limit: CHAT_LIMITS.defaultMessagesLimit
+  }
+}
+
 export function useChatState() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [draft, setDraft] = useState<CreateMessageInput>(INITIAL_DRAFT)
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingOlder, setIsLoadingOlder] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [hasOlderMessages, setHasOlderMessages] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [loadOlderError, setLoadOlderError] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [statusMessage, setStatusMessage] = useState('Loading messages.')
 
   async function syncMessages(signal?: AbortSignal) {
     setLoadError(null)
+    setLoadOlderError(null)
     setStatusMessage('Loading messages.')
 
     try {
-      const nextMessages = await chatApi.listMessages(
-        { limit: CHAT_LIMITS.defaultMessagesLimit },
-        { signal }
-      )
+      const nextMessages = await chatApi.listMessages(createLatestMessagesQuery(), { signal })
       setMessages(nextMessages)
+      setHasOlderMessages(nextMessages.length === CHAT_LIMITS.defaultMessagesLimit)
       setStatusMessage(
         nextMessages.length > 0
           ? `${nextMessages.length} messages loaded.`
@@ -92,6 +101,10 @@ export function useChatState() {
   }
 
   async function submitMessage() {
+    if (isSubmitting) {
+      return
+    }
+
     const validationError = validateDraft(draft)
     if (validationError) {
       setSubmitError(validationError)
@@ -120,6 +133,38 @@ export function useChatState() {
     }
   }
 
+  async function loadOlderMessages() {
+    const oldestMessage = messages[0]
+
+    if (!oldestMessage || isLoading || isLoadingOlder) {
+      return
+    }
+
+    setIsLoadingOlder(true)
+    setLoadOlderError(null)
+
+    try {
+      const olderMessages = await chatApi.listMessages({
+        before: oldestMessage.createdAt,
+        limit: CHAT_LIMITS.defaultMessagesLimit
+      })
+
+      setMessages((currentMessages) => mergeChatMessages(currentMessages, olderMessages))
+      setHasOlderMessages(olderMessages.length === CHAT_LIMITS.defaultMessagesLimit)
+      setStatusMessage(
+        olderMessages.length > 0
+          ? `${olderMessages.length} older messages loaded.`
+          : 'No older messages are available.'
+      )
+    } catch (error) {
+      const nextErrorMessage = toErrorMessage(error)
+      setLoadOlderError(nextErrorMessage)
+      setStatusMessage(nextErrorMessage)
+    } finally {
+      setIsLoadingOlder(false)
+    }
+  }
+
   async function retryMessages() {
     setIsLoading(true)
     await syncMessages()
@@ -129,11 +174,15 @@ export function useChatState() {
     author: draft.author,
     message: draft.message,
     messages,
+    hasOlderMessages,
     isLoading,
+    isLoadingOlder,
     isSubmitting,
     loadError,
+    loadOlderError,
     submitError,
     statusMessage,
+    loadOlderMessages,
     updateAuthor,
     updateMessage,
     retryMessages,

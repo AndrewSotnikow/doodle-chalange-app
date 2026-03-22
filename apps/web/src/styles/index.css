@@ -66,6 +66,7 @@
 html,
 body,
 #root {
+  height: 100%;
   min-height: 100%;
 }
 
@@ -73,6 +74,7 @@ body {
   margin: 0;
   color: var(--color-ink);
   background-color: var(--color-page);
+  overflow: hidden;
 }
 
 .sr-only {
@@ -112,13 +114,19 @@ textarea {
 }
 
 .app-shell {
+  height: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
 }
 
 .chat-screen {
+  height: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
+  overflow: hidden;
 }
 
 .chat-screen__canvas {
@@ -156,6 +164,7 @@ textarea {
 .chat-screen__feed {
   min-height: 0;
   display: flex;
+  flex-direction: column;
 }
 
 .message-list {
@@ -166,14 +175,54 @@ textarea {
 }
 
 .message-list__items {
-  flex: 1;
+  flex: 1 1 0;
   min-height: 0;
-  display: grid;
-  align-content: end;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-lg);
   overflow-y: auto;
+  overflow-x: hidden;
   padding: var(--space-2xs) 0 var(--feed-bottom-space);
   scrollbar-gutter: stable;
+}
+
+.message-list__items::before {
+  content: '';
+  flex: 1 1 0;
+}
+
+.message-list__sentinel {
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.message-list__pagination {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2xs);
+  margin-bottom: var(--space-sm);
+}
+
+.message-list__pagination-error {
+  margin: 0;
+  color: var(--color-error);
+  font-size: 0.9rem;
+}
+
+.message-list__pagination-button {
+  border: 1px solid rgba(123, 138, 154, 0.34);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-ink);
+  padding: 10px 18px;
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(147, 153, 160, 0.08);
+}
+
+.message-list__pagination-button:disabled {
+  opacity: 0.72;
 }
 
 .message-list__state {
@@ -354,7 +403,7 @@ textarea {
   border: 3px solid var(--color-accent-strong);
   border-radius: var(--radius-md);
   background: var(--color-composer-textarea);
-  padding: var(--space-2xs) var(--space-2xs) var(--space-2xs);
+  padding: var(--space-2xs) var(--space-sm);
   color: var(--color-ink);
 }
 
@@ -391,7 +440,8 @@ textarea {
 input:focus-visible,
 textarea:focus-visible,
 .button:focus-visible,
-.inline-action:focus-visible {
+.inline-action:focus-visible,
+.message-list__pagination-button:focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }

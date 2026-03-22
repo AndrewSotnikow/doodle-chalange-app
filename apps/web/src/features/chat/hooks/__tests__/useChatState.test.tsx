@@ -1,7 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiRequestError } from '../../../../api/requestJson'
-import type { ChatMessage } from '../../types/chat'
+import { CHAT_LIMITS, type ChatMessage } from '../../types/chat'
 import { useChatState } from '../useChatState'
 
 const { createMessageMock, listMessagesMock } = vi.hoisted(() => ({
@@ -43,7 +43,10 @@ describe('useChatState', () => {
     })
 
     expect(listMessagesMock).toHaveBeenCalledWith(
-      { limit: 50 },
+      expect.objectContaining({
+        before: expect.any(String),
+        limit: CHAT_LIMITS.defaultMessagesLimit
+      }),
       expect.objectContaining({ signal: expect.any(AbortSignal) })
     )
     expect(result.current.messages).toEqual(seededMessages)
@@ -98,6 +101,45 @@ describe('useChatState', () => {
     expect(result.current.author).toBe('Jane')
     expect(result.current.message).toBe('')
     expect(result.current.statusMessage).toBe('Message sent.')
+  })
+
+  it('loads older messages and prepends them in chronological order', async () => {
+    const initialMessages = Array.from({ length: CHAT_LIMITS.defaultMessagesLimit }, (_, index) => ({
+      id: `message-${index + 2}`,
+      author: 'Jane',
+      message: `Message ${index + 2}`,
+      createdAt: new Date(Date.UTC(2026, 2, 22, 0, index, 0)).toISOString()
+    }))
+    const olderMessages: ChatMessage[] = [
+      {
+        id: 'message-1',
+        author: 'John',
+        message: 'Earlier message',
+        createdAt: '2026-03-21T23:30:00.000Z'
+      }
+    ]
+
+    listMessagesMock.mockResolvedValueOnce(initialMessages).mockResolvedValueOnce(olderMessages)
+
+    const { result } = renderHook(() => useChatState())
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false)
+    })
+
+    expect(result.current.hasOlderMessages).toBe(true)
+
+    await act(async () => {
+      await result.current.loadOlderMessages()
+    })
+
+    expect(listMessagesMock).toHaveBeenLastCalledWith({
+      before: initialMessages[0].createdAt,
+      limit: CHAT_LIMITS.defaultMessagesLimit
+    })
+    expect(result.current.messages[0]?.id).toBe('message-1')
+    expect(result.current.messages).toHaveLength(CHAT_LIMITS.defaultMessagesLimit + 1)
+    expect(result.current.hasOlderMessages).toBe(false)
   })
 
   it('surfaces validation errors without calling the API', async () => {
