@@ -16,7 +16,9 @@
     "build:web": "npm --prefix apps/web run build",
     "lint": "npm run lint:web",
     "lint:api": "npm --prefix apps/api run lint",
-    "lint:web": "npm --prefix apps/web run lint"
+    "lint:web": "npm --prefix apps/web run lint",
+    "test": "npm run test:web",
+    "test:web": "npm --prefix apps/web run test"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
