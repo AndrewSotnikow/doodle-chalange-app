@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { ChatMessage } from '../types/chat'
+import { ChatNotice } from './ChatNotice'
 import { MessageBubble } from './MessageBubble'
 
 interface MessageListProps {
@@ -29,7 +30,7 @@ export function MessageList({
   }, [messages])
 
   return (
-    <section className="message-list" aria-labelledby="message-list-title">
+    <section aria-busy={isLoading} className="message-list" aria-labelledby="message-list-title">
       <div className="message-list__header">
         <div>
           <p className="section-label">Conversation</p>
@@ -41,28 +42,39 @@ export function MessageList({
       </div>
 
       {isLoading ? (
-        <div className="message-list__state" role="status">
-          Loading messages...
-        </div>
+        <ChatNotice
+          description="Fetching the latest conversation from the API."
+          title="Loading messages..."
+        />
       ) : null}
 
       {!isLoading && error ? (
-        <div className="message-list__state message-list__state--error" role="alert">
-          <p>{error}</p>
-          <button className="inline-action" onClick={() => void onRetry()} type="button">
-            Retry
-          </button>
-        </div>
+        <ChatNotice
+          actionLabel="Retry"
+          description="The message feed could not be refreshed."
+          onAction={() => void onRetry()}
+          role="alert"
+          title={error}
+          tone="error"
+        />
       ) : null}
 
       {!isLoading && !error && messages.length === 0 ? (
-        <div className="message-list__state" role="status">
-          No messages yet. Send the first one from the composer.
-        </div>
+        <ChatNotice
+          description="Send the first message from the composer to start the conversation."
+          title="No messages yet"
+        />
       ) : null}
 
       {!isLoading && !error && messages.length > 0 ? (
-        <div className="message-list__items" ref={feedRef}>
+        <div
+          aria-label="Chat messages"
+          aria-live="polite"
+          aria-relevant="additions text"
+          className="message-list__items"
+          ref={feedRef}
+          role="log"
+        >
           {messages.map((message) => (
             <MessageBubble
               isOwnMessage={Boolean(currentAuthor) && currentAuthor === message.author}

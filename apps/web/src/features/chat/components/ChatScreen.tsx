@@ -14,6 +14,7 @@ export function ChatScreen() {
     messages,
     messageCount,
     retryMessages,
+    statusMessage,
     submitError,
     submitMessage,
     updateAuthor,
@@ -22,6 +23,9 @@ export function ChatScreen() {
 
   return (
     <section className="surface-card chat-screen" aria-labelledby="chat-screen-title">
+      <p aria-atomic="true" aria-live="polite" className="sr-only">
+        {statusMessage}
+      </p>
       <div className="chat-screen__hero">
         <div>
           <p className="section-label">Doodle challenge chat</p>

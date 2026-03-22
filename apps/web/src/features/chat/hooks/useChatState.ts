@@ -35,9 +35,11 @@ export function useChatState() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [statusMessage, setStatusMessage] = useState('Loading messages.')
 
   async function syncMessages(signal?: AbortSignal) {
     setLoadError(null)
+    setStatusMessage('Loading messages.')
 
     try {
       const nextMessages = await chatApi.listMessages(
@@ -45,12 +47,19 @@ export function useChatState() {
         { signal }
       )
       setMessages(nextMessages)
+      setStatusMessage(
+        nextMessages.length > 0
+          ? `${nextMessages.length} messages loaded.`
+          : 'No messages are available yet.'
+      )
     } catch (error) {
       if (signal?.aborted) {
         return
       }
 
-      setLoadError(toErrorMessage(error))
+      const nextErrorMessage = toErrorMessage(error)
+      setLoadError(nextErrorMessage)
+      setStatusMessage(nextErrorMessage)
     } finally {
       if (!signal?.aborted) {
         setIsLoading(false)
@@ -91,6 +100,7 @@ export function useChatState() {
 
     setIsSubmitting(true)
     setSubmitError(null)
+    setStatusMessage('Sending message.')
 
     try {
       const nextAuthor = draft.author.trim()
@@ -100,8 +110,11 @@ export function useChatState() {
         author: nextAuthor,
         message: ''
       })
+      setStatusMessage('Message sent.')
     } catch (error) {
-      setSubmitError(toErrorMessage(error))
+      const nextErrorMessage = toErrorMessage(error)
+      setSubmitError(nextErrorMessage)
+      setStatusMessage(nextErrorMessage)
     } finally {
       setIsSubmitting(false)
     }
@@ -120,6 +133,7 @@ export function useChatState() {
     isSubmitting,
     loadError,
     submitError,
+    statusMessage,
     updateAuthor,
     updateMessage,
     retryMessages,
