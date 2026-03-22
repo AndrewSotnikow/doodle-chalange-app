@@ -1,9 +1,7 @@
-const timestampFormatter = new Intl.DateTimeFormat(undefined, {
-  hour: '2-digit',
-  minute: '2-digit',
-  month: 'short',
-  day: 'numeric'
-})
+const MONTHS = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+]
 
 export function formatMessageTimestamp(value: string) {
   const date = new Date(value)
@@ -12,5 +10,11 @@ export function formatMessageTimestamp(value: string) {
     return 'Unknown time'
   }
 
-  return timestampFormatter.format(date)
+  const day = date.getDate()
+  const month = MONTHS[date.getMonth()]
+  const year = date.getFullYear()
+  const hours = date.getHours()
+  const minutes = date.getMinutes().toString().padStart(2, '0')
+
+  return `${day} ${month} ${year} ${hours}:${minutes}`
 }

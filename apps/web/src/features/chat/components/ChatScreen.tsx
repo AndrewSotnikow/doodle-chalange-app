@@ -1,4 +1,3 @@
-import { ChatStatus } from './ChatStatus'
 import { useChatScreen } from '../hooks/useChatScreen'
 import { MessageComposer } from './MessageComposer'
 import { MessageList } from './MessageList'
@@ -22,31 +21,31 @@ export function ChatScreen() {
   } = useChatScreen()
 
   return (
-    <section className="surface-card chat-screen" aria-labelledby="chat-screen-title">
+    <section className="chat-screen" aria-labelledby="chat-screen-title">
       <p aria-atomic="true" aria-live="polite" className="sr-only">
         {statusMessage}
       </p>
-      <div className="chat-screen__hero">
-        <div>
-          <p className="section-label">Doodle challenge chat</p>
-          <h2 id="chat-screen-title">Shared conversation</h2>
-        </div>
-        <p className="surface-card__lead">
-          The message feed and composer are now a working end-to-end interface. Data
-          loading and submission stay in the feature hook, while each component owns only
-          its slice of rendering and local interaction.
-        </p>
-        <ChatStatus
-          activeAuthor={activeAuthor}
-          hasError={Boolean(loadError)}
-          isLoading={isLoading}
-          isSubmitting={isSubmitting}
-          messageCount={messageCount}
-        />
-      </div>
+      <h1 className="sr-only" id="chat-screen-title">
+        Doodle challenge chat
+      </h1>
 
-      <div className="chat-layout">
-        <div className="chat-layout__main">
+      <div className="chat-screen__canvas">
+        <header className="chat-screen__meta" aria-label="Conversation metadata">
+          <p className="chat-screen__identity">
+            {activeAuthor ? (
+              <>
+                Posting as <strong>{activeAuthor}</strong>
+              </>
+            ) : (
+              'Choose a name to join the conversation.'
+            )}
+          </p>
+          <p className="chat-screen__count">
+            {messageCount} {messageCount === 1 ? 'message' : 'messages'}
+          </p>
+        </header>
+
+        <div className="chat-screen__feed">
           <MessageList
             currentAuthor={activeAuthor}
             error={loadError}
@@ -55,18 +54,17 @@ export function ChatScreen() {
             onRetry={retryMessages}
           />
         </div>
-        <aside className="chat-layout__side">
-          <MessageComposer
-            author={author}
-            isSubmitting={isSubmitting}
-            message={message}
-            onAuthorChange={updateAuthor}
-            onMessageChange={updateMessage}
-            onSubmit={submitMessage}
-            submitError={submitError}
-          />
-        </aside>
       </div>
+
+      <MessageComposer
+        author={author}
+        isSubmitting={isSubmitting}
+        message={message}
+        onAuthorChange={updateAuthor}
+        onMessageChange={updateMessage}
+        onSubmit={submitMessage}
+        submitError={submitError}
+      />
     </section>
   )
 }

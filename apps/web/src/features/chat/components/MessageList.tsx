@@ -31,15 +31,9 @@ export function MessageList({
 
   return (
     <section aria-busy={isLoading} className="message-list" aria-labelledby="message-list-title">
-      <div className="message-list__header">
-        <div>
-          <p className="section-label">Conversation</p>
-          <h3 id="message-list-title">Shared feed</h3>
-        </div>
-        <p className="message-list__caption">
-          New messages appear in chronological order, with the latest entry kept in view.
-        </p>
-      </div>
+      <h2 className="sr-only" id="message-list-title">
+        Shared feed
+      </h2>
 
       {isLoading ? (
         <ChatNotice

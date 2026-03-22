@@ -1,11 +1,9 @@
-import { FilterQuery } from 'mongoose';
-
 import {
   Message,
   MessageInternal,
   CreateMessageBody,
 } from '../../types/types.js';
-import { MessageModel } from '../../models/message.model.js';
+import { messagesRepository } from './messages.repository.js';
 
 const transformMessage = (message: MessageInternal): Message => ({
   _id: message._id,
@@ -16,10 +14,7 @@ const transformMessage = (message: MessageInternal): Message => ({
 
 const messagesService = {
   async createMessage(data: CreateMessageBody): Promise<Message> {
-    const messageDoc = await MessageModel.create({
-      ...data,
-      createdAt: new Date(),
-    });
+    const messageDoc = await messagesRepository.createMessage(data);
 
     return transformMessage(messageDoc);
   },
@@ -35,29 +30,14 @@ const messagesService = {
     after: string | undefined;
     before: string | undefined;
   }): Promise<Message[]> {
-    const query: FilterQuery<MessageInternal> = {};
-
-    if (after || before) {
-      const createdAtQuery: { $gt?: Date; $lt?: Date } = {};
-      if (after) {
-        createdAtQuery.$gt = new Date(after);
-      }
-      if (before) {
-        createdAtQuery.$lt = new Date(before);
-      }
-      query.createdAt = createdAtQuery;
-    }
-
-    let messages = await MessageModel.find(query)
-      .sort({ createdAt: sortOrder })
-      .limit(limit)
-      .lean()
-      .then((messages) => messages.map(transformMessage));
-
-    // Reverse sorting if before query is present to get messages in chronological order
-    if (before) {
-      messages = messages.reverse();
-    }
+    const messages = await messagesRepository
+      .getMessages({
+        sortOrder,
+        limit,
+        after,
+        before,
+      })
+      .then((items) => items.map(transformMessage));
 
     return messages;
   },

@@ -1,21 +1,23 @@
 # Doodle Chat Challenge
 
-This repository is structured to make the frontend review straightforward while keeping the provided API close at hand for local development. The frontend is the authored deliverable. The backend is included as an upstream dependency and remains unchanged.
+This repository contains my submission for the Doodle frontend challenge. The frontend lives in `apps/web`. The backend in `apps/api` started from the provided upstream API and includes a small development-only fallback so the project can run locally without Docker or a separately installed MongoDB instance.
 
-## Why The Repo Has Two Apps
+## What Is Included
 
-- `apps/web` contains the React + TypeScript frontend implementation.
-- `apps/api` contains the provided Doodle chat API used as a local runtime dependency.
-
-This layout reduces reviewer setup friction without blurring ownership. The goal is to make it obvious what was built for the challenge and what was supplied as supporting infrastructure.
+- A React + TypeScript chat interface built with Vite
+- A typed API layer for message listing and creation
+- A dedicated state hook for fetch, submit, retry, and status handling
+- Focused UI components for feed, composer, status, and notices
+- Responsive and accessibility-focused UI polish
+- Layered tests for mappers, API client behavior, hooks, and components
 
 ## Repository Layout
 
 ```text
 .
 ├── apps
-│   ├── api    # Provided upstream chat API, kept unchanged
-│   └── web    # Authored frontend application
+│   ├── api    # Provided Doodle API with a dev-only in-memory fallback
+│   └── web    # Frontend implementation under review
 ├── docs
 │   ├── reference
 │   │   ├── backend-brief.md
@@ -26,13 +28,20 @@ This layout reduces reviewer setup friction without blurring ownership. The goal
 
 ## Ownership
 
-- `apps/web` is the implementation under review.
-- `apps/api` is the provided backend dependency.
-- `docs/solution-design.md` explains the reasoning behind the frontend delivery strategy and architecture choices.
+- `apps/web` is the authored deliverable.
+- `apps/api` remains close to the provided backend contract, with a small development-only in-memory fallback added to simplify local setup.
+- [`docs/solution-design.md`](docs/solution-design.md) explains the technical decisions and tradeoffs behind the implementation.
+
+## Prerequisites
+
+- Node.js `>= 22`
+- npm `>= 10`
 
 ## Quick Start
 
-1. Install root tooling:
+### Recommended Review Path
+
+1. Install root dependencies:
 
    ```bash
    npm install
@@ -44,46 +53,83 @@ This layout reduces reviewer setup friction without blurring ownership. The goal
    npm run install:all
    ```
 
-3. Configure the backend:
-
-   ```bash
-   cp apps/api/.env.example apps/api/.env
-   ```
-
-4. Configure the frontend:
+3. Configure the frontend:
 
    ```bash
    cp apps/web/.env.example apps/web/.env.local
    ```
 
-5. Run the API and frontend in separate terminals:
-
-   ```bash
-   npm run dev:api
-   npm run dev:web
-   ```
-
-   Or run both from the root:
+4. Start the full local stack from the repository root:
 
    ```bash
    npm run dev
    ```
 
-## Available Scripts
+   This command now:
+   - starts the API and frontend together
+   - uses MongoDB automatically if you already have it running locally
+   - otherwise falls back to an in-memory message store in development
 
-- `npm run dev` starts both apps together.
-- `npm run dev:api` starts the provided API.
-- `npm run dev:web` starts the frontend scaffold.
-- `npm run build:web` builds the frontend.
-- `npm run lint:web` lints the frontend.
+5. Open the app at `http://localhost:5173`.
 
-## Current Checkpoint
+### Optional Persistent Local API Path
 
-This repository currently covers the first three implementation steps:
+If MongoDB is already running locally, the same `npm run dev` command will use it automatically. You can also start each process separately:
 
-- monorepo structure and ownership boundaries
-- reviewer-facing documentation
-- frontend scaffold with SOLID-friendly component boundaries
+```bash
+cp apps/api/.env.example apps/api/.env
+npm run dev:api
+npm run dev:web
+```
 
-API integration and chat behavior come next, after this checkpoint is reviewed.
-# doodle-chalange-app
+If MongoDB is not running, the API still starts in development with seeded in-memory data.
+
+## Review Notes
+
+- Swagger docs for the backend are available at `http://localhost:3000/api/v1/docs`
+- The frontend uses `VITE_API_BASE_URL` and `VITE_API_TOKEN` from `apps/web/.env.local`
+- The composer supports `Ctrl/Cmd + Enter` for quick send
+- Sent messages keep the active author name in place for consecutive posting
+- Development mode uses an in-memory API store when MongoDB is unavailable, so sent messages are reset when the API restarts
+
+## Available Commands
+
+- `npm run dev` starts the API and frontend together
+- `npm run dev:web` starts the frontend
+- `npm run dev:api` starts the API and uses MongoDB when available, otherwise in-memory storage in development
+- `npm run build:web` builds the frontend
+- `npm run lint:web` lints the frontend
+- `npm run test:web` runs the frontend test suite
+
+## Implementation Highlights
+
+- Typed service boundary:
+  `apps/web/src/features/chat/api`
+- State orchestration:
+  `apps/web/src/features/chat/hooks/useChatState.ts`
+- Focused UI components:
+  `apps/web/src/features/chat/components`
+- Tests by responsibility:
+  mapper/API tests, hook tests, and component tests
+
+## Validation
+
+The frontend has been verified with:
+
+```bash
+npm run test:web
+npm run lint:web
+npm run build:web
+```
+
+## Tradeoffs And Known Limitations
+
+- Real-time updates are not implemented because the brief references them but the documented API only exposes request/response endpoints. The current implementation focuses on the explicit REST contract.
+- The brief references design assets that were not present in this workspace, so the final UI is a reasoned visual interpretation rather than an asset-matched reconstruction.
+- The backend contract is preserved, but local development now includes an in-memory fallback so reviewers do not need Docker or a separate MongoDB installation.
+
+## Further Reading
+
+- [Solution design](docs/solution-design.md)
+- [Original frontend brief](docs/reference/challenge-brief.md)
+- [Provided backend brief](docs/reference/backend-brief.md)

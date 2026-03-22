@@ -11,7 +11,7 @@ const DEFAULT_CONFIG = {
     env: 'development',
   },
   database: {
-    uri: 'mongodb://localhost:27017/mydb',
+    uri: 'mongodb://localhost:27017/chat-api',
   },
 } as const;
 
