@@ -44,11 +44,11 @@ describe('chatApi', () => {
       'http://localhost:3000/api/v1/messages?limit=25',
       expect.objectContaining({
         headers: expect.objectContaining({
-          Authorization: 'Bearer super-secret-doodle-token',
-          'Content-Type': 'application/json'
+          Authorization: 'Bearer super-secret-doodle-token'
         })
       })
     )
+    expect(requestJsonMock.mock.calls[0][1].headers).not.toHaveProperty('Content-Type')
     expect(result.map((message) => message.id)).toEqual(['message-1', 'message-2'])
   })
 

@@ -1,5 +1,8 @@
 import { useEffect, useId, useRef } from 'react'
 import type { FormEvent, KeyboardEvent } from 'react'
+import { Button } from '../../../components/Button'
+import { Input } from '../../../components/Input'
+import { TextArea } from '../../../components/TextArea'
 import { CHAT_LIMITS } from '../types/chat'
 
 interface MessageComposerProps {
@@ -23,7 +26,8 @@ export function MessageComposer({
 }: MessageComposerProps) {
   const authorInputId = useId()
   const messageInputId = useId()
-  const helperTextId = useId()
+  const authorHintId = useId()
+  const messageHintId = useId()
   const errorTextId = useId()
   const messageInputRef = useRef<HTMLTextAreaElement | null>(null)
   const wasSubmittingRef = useRef(false)
@@ -55,14 +59,14 @@ export function MessageComposer({
       </h2>
       <form className="composer-form" onSubmit={handleSubmit}>
         <div className="composer-dock__author">
-          <label className="field field--inline">
+          <label className="field field--inline" htmlFor={authorInputId}>
             <span className="sr-only">Name</span>
             <span aria-hidden="true" className="composer-dock__author-copy">
               Posting as
             </span>
-            <input
+            <Input
               aria-label="Name"
-              aria-describedby={helperTextId}
+              aria-describedby={authorHintId}
               autoComplete="name"
               disabled={isSubmitting}
               id={authorInputId}
@@ -74,7 +78,10 @@ export function MessageComposer({
               value={author}
             />
           </label>
-          <p className="field__hint" id={helperTextId}>
+          <p className="sr-only" id={authorHintId}>
+            Enter the name that will appear with your messages.
+          </p>
+          <p className="field__hint" id={messageHintId}>
             {message.length} / {CHAT_LIMITS.messageMaxLength} characters
             {message.length >= CHAT_LIMITS.messageMaxLength && (
               <span className="field__hint--warning"> — Character limit reached</span>
@@ -87,11 +94,11 @@ export function MessageComposer({
         </div>
 
         <div className="composer-dock__bar">
-          <label className="field field--message">
+          <label className="field field--message" htmlFor={messageInputId}>
             <span className="sr-only">Message</span>
-            <textarea
+            <TextArea
               aria-label="Message"
-              aria-describedby={submitError ? `${helperTextId} ${errorTextId}` : helperTextId}
+              aria-describedby={submitError ? `${messageHintId} ${errorTextId}` : messageHintId}
               aria-invalid={Boolean(submitError)}
               disabled={isSubmitting}
               id={messageInputId}
@@ -106,14 +113,14 @@ export function MessageComposer({
               value={message}
             />
           </label>
-          <button
+          <Button
             aria-label={isSubmitting ? 'Sending message' : 'Send message'}
-            className="button composer-dock__submit"
+            className="composer-dock__submit"
             disabled={isSubmitting}
             type="submit"
           >
             {isSubmitting ? 'Sending...' : 'Send'}
-          </button>
+          </Button>
         </div>
 
         {submitError ? (

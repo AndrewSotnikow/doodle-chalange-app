@@ -6,8 +6,10 @@ This repository contains my submission for the Doodle frontend challenge. The fr
 
 - A React + TypeScript chat interface built with Vite
 - A typed API layer for message listing and creation
-- A dedicated state hook for fetch, submit, retry, and status handling
-- Focused UI components for feed, composer, status, and notices
+- A dedicated state hook for initial load, send, retry, pagination, polling, and status handling
+- Cursor-based pagination for loading earlier messages
+- Background polling for newer messages using the existing `after` query parameter
+- Focused UI components for feed, composer, message bubbles, and notices
 - Responsive and accessibility-focused UI polish
 - Layered tests for mappers, API client behavior, hooks, and components
 
@@ -72,6 +74,17 @@ This repository contains my submission for the Doodle frontend challenge. The fr
 
 5. Open the app at `http://localhost:5173`.
 
+### What To Check As A Reviewer
+
+Once the app is running:
+
+- the latest messages should load automatically
+- sending a message should append it to the feed
+- `Ctrl/Cmd + Enter` should submit from the composer
+- `Load earlier messages` should page older results into the feed
+- new messages from other senders should appear without a manual refresh through background polling
+- disabling the API should surface a retry state instead of a blank screen
+
 ### Optional Persistent Local API Path
 
 If MongoDB is already running locally, the same `npm run dev` command will use it automatically. You can also start each process separately:
@@ -90,7 +103,19 @@ If MongoDB is not running, the API still starts in development with seeded in-me
 - The frontend uses `VITE_API_BASE_URL` and `VITE_API_TOKEN` from `apps/web/.env.local`
 - The composer supports `Ctrl/Cmd + Enter` for quick send
 - Sent messages keep the active author name in place for consecutive posting
+- The feed initially loads the latest page, supports loading older messages, and polls for new messages every `10s`
 - Development mode uses an in-memory API store when MongoDB is unavailable, so sent messages are reset when the API restarts
+
+## Background Polling
+
+The chat stays up to date without a manual refresh by polling the existing REST API every `10s`.
+
+- The initial feed load uses `before=<now>` to fetch the latest page.
+- Older messages are loaded with `before=<oldestVisibleMessage>`.
+- New messages are fetched in the background with `after=<latestVisibleMessage>`.
+- Poll results are merged by message `id`, so duplicate payloads do not create duplicate entries in the UI.
+- Polling is intentionally silent on failure and does not interrupt the user with transient background errors.
+- The implementation avoids overlapping poll requests and skips hidden browser tabs to keep the behavior lightweight.
 
 ## Available Commands
 
@@ -109,6 +134,8 @@ If MongoDB is not running, the API still starts in development with seeded in-me
   `apps/web/src/features/chat/hooks/useChatState.ts`
 - Focused UI components:
   `apps/web/src/features/chat/components`
+- Cursor usage:
+  initial load uses `before`, pagination uses `before`, and background updates use `after`
 - Tests by responsibility:
   mapper/API tests, hook tests, and component tests
 
@@ -124,7 +151,8 @@ npm run build:web
 
 ## Tradeoffs And Known Limitations
 
-- Real-time updates are not implemented because the brief references them but the documented API only exposes request/response endpoints. The current implementation focuses on the explicit REST contract.
+- The backend only exposes REST endpoints, so the app uses client-side polling rather than WebSockets or Server-Sent Events.
+- Background updates are intentionally lightweight and happen every `10s`; this favors a simpler challenge implementation over a more complex push transport.
 - The brief references design assets that were not present in this workspace, so the final UI is a reasoned visual interpretation rather than an asset-matched reconstruction.
 - The backend contract is preserved, but local development now includes an in-memory fallback so reviewers do not need Docker or a separate MongoDB installation.
 

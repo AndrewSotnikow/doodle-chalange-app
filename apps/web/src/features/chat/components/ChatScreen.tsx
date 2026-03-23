@@ -1,10 +1,9 @@
-import { useChatScreen } from '../hooks/useChatScreen'
+import { useChatState } from '../hooks/useChatState'
 import { MessageComposer } from './MessageComposer'
 import { MessageList } from './MessageList'
 
 export function ChatScreen() {
   const {
-    activeAuthor,
     author,
     loadError,
     isLoading,
@@ -14,7 +13,6 @@ export function ChatScreen() {
     loadOlderError,
     message,
     messages,
-    messageCount,
     loadOlderMessages,
     retryMessages,
     statusMessage,
@@ -22,7 +20,10 @@ export function ChatScreen() {
     submitMessage,
     updateAuthor,
     updateMessage
-  } = useChatScreen()
+  } = useChatState()
+
+  const activeAuthor = author.trim()
+  const messageCount = messages.length
 
   return (
     <section className="chat-screen" aria-labelledby="chat-screen-title">

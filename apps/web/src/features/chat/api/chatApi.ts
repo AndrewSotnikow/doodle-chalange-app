@@ -7,11 +7,12 @@ interface RequestOptions {
   signal?: AbortSignal
 }
 
-function createHeaders() {
-  return {
-    Authorization: `Bearer ${env.apiToken}`,
-    'Content-Type': 'application/json'
-  }
+function authHeaders(): HeadersInit {
+  return { Authorization: `Bearer ${env.apiToken}` }
+}
+
+function jsonHeaders(): HeadersInit {
+  return { ...authHeaders(), 'Content-Type': 'application/json' }
 }
 
 function buildMessagesUrl(params?: MessagesQuery) {
@@ -42,7 +43,7 @@ export const chatApi = {
     options?: RequestOptions
   ): Promise<ChatMessage[]> {
     const payload = await requestJson(buildMessagesUrl(params), {
-      headers: createHeaders(),
+      headers: authHeaders(),
       signal: options?.signal
     })
 
@@ -54,7 +55,7 @@ export const chatApi = {
   ): Promise<ChatMessage> {
     const payload = await requestJson(buildMessagesUrl(), {
       method: 'POST',
-      headers: createHeaders(),
+      headers: jsonHeaders(),
       body: JSON.stringify(normalizeCreateMessageInput(input)),
       signal: options?.signal
     })

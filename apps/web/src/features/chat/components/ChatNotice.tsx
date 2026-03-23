@@ -1,3 +1,5 @@
+import { Button } from '../../../components/Button'
+
 interface ChatNoticeProps {
   tone?: 'default' | 'error'
   title: string
@@ -25,9 +27,9 @@ export function ChatNotice({
         {description ? <p className="message-list__state-copy">{description}</p> : null}
       </div>
       {actionLabel && onAction ? (
-        <button className="inline-action" onClick={onAction} type="button">
+        <Button variant="inline" onClick={onAction} type="button">
           {actionLabel}
-        </button>
+        </Button>
       ) : null}
     </div>
   )

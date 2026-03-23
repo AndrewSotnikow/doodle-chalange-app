@@ -13,7 +13,7 @@ function expectString(value: unknown, field: string) {
 }
 
 function compareByCreatedAt(left: ChatMessage, right: ChatMessage) {
-  return new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime()
+  return left.createdAt < right.createdAt ? -1 : left.createdAt > right.createdAt ? 1 : 0
 }
 
 export function normalizeCreateMessageInput(input: CreateMessageInput): CreateMessageInput {

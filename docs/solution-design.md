@@ -11,6 +11,8 @@ The frontend provides:
 - message loading from the provided API
 - message creation through a typed service layer
 - chronological rendering of the conversation
+- cursor-based pagination for older messages
+- background polling for newer messages
 - clear loading, empty, retry, and submission states
 - keyboard-friendly composer behavior
 - responsive layout for desktop and mobile
@@ -62,11 +64,14 @@ File:
 
 Responsibilities:
 
-- fetch initial messages
+- fetch the latest message page
+- poll for newer messages using the backend `after` cursor
+- page older messages using the backend `before` cursor
 - handle submission and retry flows
 - track loading and submit state
 - expose UI-ready status strings
 - preserve author state after successful sends
+- avoid stale sync responses overwriting newer local state
 
 ### 3. Component Layer
 
@@ -134,6 +139,7 @@ The final UI includes several challenge-appropriate accessibility and layout cho
 - keyboard submission with `Ctrl/Cmd + Enter`
 - mobile-first fallbacks for stacked layout and full-width actions
 - a persistent bottom composer dock that stays available while reading the feed
+- an internally scrolling feed so pagination and reading do not create a full-page scroll
 
 ## Testing Strategy
 
@@ -153,9 +159,12 @@ These validate transformation and contract logic:
 These validate orchestration behavior:
 
 - initial message load
+- background polling merge behavior
+- pagination for older messages
 - load failures
 - submission flow
 - validation failures without API calls
+- stale submit-error reset while the draft is edited
 
 ### Component Tests
 
@@ -168,7 +177,8 @@ These validate rendering and user interaction:
 
 ## Tradeoffs
 
-- Real-time behavior was not added because the backend documentation does not define a transport beyond REST endpoints.
+- The backend documentation exposes REST endpoints but no push transport, so I implemented background polling with the existing `after` cursor instead of introducing WebSocket or Server-Sent Events assumptions.
+- Polling runs every `10s`, which is enough to demonstrate the multi-sender chat flow while keeping the frontend implementation simple and reviewer-friendly.
 - The workspace did not include the design assets referenced by the brief, so the final UI is an intentional interpretation instead of a strict visual recreation.
 - The backend contract is preserved, but the local dev experience now includes an in-memory fallback so reviewers do not need Docker or MongoDB just to run the submission.
 
@@ -176,7 +186,7 @@ These validate rendering and user interaction:
 
 If this were extended beyond the challenge scope, the next improvements would be:
 
-- explicit polling or a real-time transport once the backend contract is clarified
+- moving from interval polling to a push transport if the backend contract expands
 - optimistic message sending with rollback
 - richer message grouping and date separators
 - visual regression coverage or end-to-end browser tests

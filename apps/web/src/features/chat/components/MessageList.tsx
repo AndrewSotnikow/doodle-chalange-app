@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
+import { Fragment, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
+import { formatDateLabel, getDateKey } from '../../../utils/formatMessageTimestamp'
 import type { ChatMessage } from '../types/chat'
 import { ChatNotice } from './ChatNotice'
 import { MessageBubble } from './MessageBubble'
+import { MessageSkeleton } from './MessageSkeleton'
 
 interface MessageListProps {
   currentAuthor: string
@@ -122,10 +124,10 @@ export function MessageList({
       </h2>
 
       {isLoading ? (
-        <ChatNotice
-          description="Fetching the latest conversation from the API."
-          title="Loading messages..."
-        />
+        <div className="message-list__items" role="status">
+          <span className="sr-only">Loading messages</span>
+          <MessageSkeleton />
+        </div>
       ) : null}
 
       {!isLoading && error ? (
@@ -179,13 +181,28 @@ export function MessageList({
               </button>
             </div>
           )}
-          {messages.map((message) => (
-            <MessageBubble
-              isOwnMessage={Boolean(currentAuthor) && currentAuthor === message.author}
-              key={message.id}
-              message={message}
-            />
-          ))}
+          {messages.map((message, index) => {
+            const previousMessage = index > 0 ? messages[index - 1] : null
+            const showDateSeparator =
+              !previousMessage ||
+              getDateKey(message.createdAt) !== getDateKey(previousMessage.createdAt)
+
+            return (
+              <Fragment key={message.id}>
+                {showDateSeparator && (
+                  <div className="date-separator" role="separator">
+                    <span className="date-separator__label">
+                      {formatDateLabel(message.createdAt)}
+                    </span>
+                  </div>
+                )}
+                <MessageBubble
+                  isOwnMessage={Boolean(currentAuthor) && currentAuthor === message.author}
+                  message={message}
+                />
+              </Fragment>
+            )
+          })}
         </div>
       ) : null}
     </section>

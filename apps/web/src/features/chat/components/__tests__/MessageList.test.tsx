@@ -19,8 +19,8 @@ describe('MessageList', () => {
       />
     )
 
-    expect(screen.getByText('Loading messages...')).toBeInTheDocument()
-    expect(screen.getByText('Fetching the latest conversation from the API.')).toBeInTheDocument()
+    expect(screen.getByText('Loading messages')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toBeInTheDocument()
   })
 
   it('renders the empty state', () => {

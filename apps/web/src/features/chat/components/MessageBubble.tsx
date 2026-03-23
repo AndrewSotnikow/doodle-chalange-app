@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { cx } from '../../../utils/cx'
 import { formatMessageTimestamp } from '../../../utils/formatMessageTimestamp'
 import type { ChatMessage } from '../types/chat'
@@ -7,7 +8,10 @@ interface MessageBubbleProps {
   message: ChatMessage
 }
 
-export function MessageBubble({ isOwnMessage, message }: MessageBubbleProps) {
+export const MessageBubble = memo(function MessageBubble({
+  isOwnMessage,
+  message
+}: MessageBubbleProps) {
   const variant = message.author === 'System' ? 'system' : isOwnMessage ? 'outgoing' : 'incoming'
 
   return (
@@ -21,4 +25,4 @@ export function MessageBubble({ isOwnMessage, message }: MessageBubbleProps) {
       </div>
     </article>
   )
-}
+})
